@@ -2,6 +2,11 @@
 
 The UI and application features built in this application are heavily based on [Coolors.co](https://coolors.co/).This project is still under construction can can be previewed [here](https://coloors-inferior.herokuapp.com).
 
+## Change Log
+Application Skeleton Created
+
+
+
 ## Available Scripts
 
 In the project directory, you can run:
