@@ -3,7 +3,9 @@
 The UI and application features built in this application are heavily based on [Coolors.co](https://coolors.co/).This project is still under construction can can be previewed [here](https://coloors-inferior.herokuapp.com).
 
 ## Change Log
-Application Skeleton Created
+Application Skeleton Created - 2/2/2023 (mm/dd/yyyy)
+
+Color palette functionality created. Inititated on load and spacebar press  2/3/2023 (mm/dd/yy)
 
 
 

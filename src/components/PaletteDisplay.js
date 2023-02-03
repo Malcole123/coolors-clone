@@ -1,20 +1,28 @@
 import React , { Component, useState } from 'react';
+import axios from 'axios';
 import ColorSlide from './ColorSlide';
+import { LinearProgress } from '@mui/material';
 
-function PaletteController ({initialCount}) {
+function PaletteController ({initialCount , displayResults, columnControl }) {
     const [count, setCount] = useState(initialCount);
+    const [ componentMount , setComponentMount ] = useState(null)
     const detectNewItem = ()=>{
         let new_count = count + 1;
         setCount(new_count);
 
     }
+    
+    const updateComponentState = (val)=>{
+        setComponentMount(val);
+    }
+    
     return (
     <div className='full-width app-palette-display' id='appPaletteDisplay' 
         style={    
             {        
                 width:"100%",
                 display:"grid",
-                gridTemplateColumns:`repeat(${count},1fr)`,
+                gridTemplateColumns:`repeat(${columnControl},1fr)`,
                 flex:1,
             } 
         } 
@@ -23,190 +31,58 @@ function PaletteController ({initialCount}) {
                 cardAddFunction = {
                     detectNewItem
                 }
+                colorResults = { 
+                    displayResults
+                }
+                currentShow = {
+                    count
+                }
+                componentMounted = {
+                    componentMount
+                }
+                mountAction = {
+                    updateComponentState
+                }
             />
         </div> 
     );
-  }
+}
+
+
+function PaletteLoaderControl({ isFetching , override}){
+    if(isFetching === true || override === true){
+        return (
+            <div className='app-palette-loader'>
+                <LinearProgress />  
+            </div> 
+        )
+    }else{
+        return (
+            <div className='app-palette-loader'>
+            
+            </div> 
+        )
+    }
+}
 
 function ColorDisplayList(data){
-    let fetchItems = [
-        {
-            "hexCode": "00051c",
-            "bestName": "What Lies Beneath",
-            "votes": 3
-          },
-          {
-            "hexCode": "00051d",
-            "bestName": "Isabella",
-            "votes": 2
-          },
-          {
-            "hexCode": "000415",
-            "bestName": "Dignified Blue",
-            "votes": 1
-          },
-          {
-            "hexCode": "000416",
-            "bestName": "Wow Am I Depressed Or What",
-            "votes": 5
-          },
-          {
-            "hexCode": "000417",
-            "bestName": "Magpie Feathers",
-            "votes": 4
-          },
-          {
-            "hexCode": "000418",
-            "bestName": "That's Like Honestly Black Dood",
-            "votes": 4
-          },
-          {
-            "hexCode": "000419",
-            "bestName": "Mildly Infuriating",
-            "votes": 2
-          },
-          {
-            "hexCode": "00041a",
-            "bestName": "Abyss Blue",
-            "votes": 3
-          },
-          {
-            "hexCode": "00041b",
-            "bestName": "Cottage Nights",
-            "votes": 4
-          },
-          {
-            "hexCode": "00041c",
-            "bestName": "Depression In The Rain",
-            "votes": 3
-          },
-          {
-            "hexCode": "00041d",
-            "bestName": "Low Sea Trench",
-            "votes": 2
-          },
-          {
-            "hexCode": "00041e",
-            "bestName": "Darkest Midnight Blue Tone",
-            "votes": 1
-          },
-          {
-            "hexCode": "00041f",
-            "bestName": "Star Studded Midnight Sky",
-            "votes": 6
-          },
-          {
-            "hexCode": "000420",
-            "bestName": "Haha Nice",
-            "votes": 23
-          },
-          {
-            "hexCode": "000421",
-            "bestName": "Is That Black Or Dark Blue",
-            "votes": 3
-          },
-          {
-            "hexCode": "000422",
-            "bestName": "Barely Blue Black",
-            "votes": 2
-          },
-          {
-            "hexCode": "000423",
-            "bestName": "Deep As Earth",
-            "votes": 2
-          },
-          {
-            "hexCode": "000424",
-            "bestName": "Reaper Blue",
-            "votes": 6
-          },
-          {
-            "hexCode": "000425",
-            "bestName": "Navy's Edge",
-            "votes": 1
-          },
-          {
-            "hexCode": "000426",
-            "bestName": "The Zone",
-            "votes": 5
-          },
-          {
-            "hexCode": "000427",
-            "bestName": "Gridlock Midnight Blue",
-            "votes": 2
-          },
-          {
-            "hexCode": "000428",
-            "bestName": "Purplish Dark Black",
-            "votes": 1
-          },
-          {
-            "hexCode": "000429",
-            "bestName": "Super Dark Blueberry",
-            "votes": 3
-          },
-          {
-            "hexCode": "00051e",
-            "bestName": "Ocean Midnights",
-            "votes": 3
-          },
-          {
-            "hexCode": "00050e",
-            "bestName": "Blindfold",
-            "votes": 4
-          },
-          {
-            "hexCode": "00050f",
-            "bestName": "Not-quite-black",
-            "votes": 3
-          },
-          {
-            "hexCode": "000510",
-            "bestName": "Blue Of Midnight",
-            "votes": 3
-          },
-          {
-            "hexCode": "000511",
-            "bestName": "Winter Midnight",
-            "votes": 4
-          },
-
-    ]
-    let items = [
-        {
-            listIndex:0,
-            showAddIcon:'true',
+    const { colorResults, currentShow } = data;
+    let maxShow = parseInt(currentShow)
+    let colorMutable = [...colorResults].splice(0 , maxShow);
+    //Format results for component use
+    let use_results = [...colorMutable].map((item,index)=>{
+        let show_icon = index < maxShow - 1 ? 'true' : 'false';
+        return {
+            isNew:true,
+            listIndex:index,
+            showAddIcon:'false', // Change to show icon when new palette feature added 
             colorName:"",
-            colorHex:"#787372",
-        },
-        {
-            listIndex:1,
-            showAddIcon:'true',
-            colorName:"",
-            colorHex:"#412234",
-        },
-        {
-            listIndex:2,
-            showAddIcon:'true',
-            colorName:"",
-            colorHex:"#347FC4",
-        },
-        {
-            listIndex:3,
-            showAddIcon:'true',
-            colorName:"",
-            colorHex:"#BB4430",
-        },
-        {
-            listIndex:4,
-            showAddIcon:'false',
-            colorName:"",
-            colorHex:"#000002",
-        },
-    ];
-    const [ colorList, setColorList  ] = useState(items);
-
+            colorHex:`#${item}`,
+        };
+    })
+    //Set results to store for mutation across components 
     const addNewPaletteCard = async (ev)=>{
+        //Function for adding new palette card - > triggered by button press on slide
         const { cardAddFunction } = data;
             //Current index of card 
             let currentPos = ev.currentTarget.getAttribute("data-add-pos");
@@ -220,41 +96,27 @@ function ColorDisplayList(data){
             cardAddFunction();
     }
     
-    const createCard = async (pos)=>{
-        let colorChoices = fetchItems;
-        let randomChoice = Math.floor(Math.random() * colorChoices.length);
-        let pick = colorChoices[randomChoice];
-        let useHex = pick.hexCode.includes("#") ? pick.hexCode : `#${pick.hexCode}`
+    const createCard = async (pos, hex, name, isNew)=>{
+        //Function for creating any color card to be used on component
         let create_item = {
-            isNew:true,
+            isNew:isNew,
             listIndex:pos,
-            showAddIcon:'true',
-            colorName:pick.bestName,
-            colorHex:useHex,
+            showAddIcon:'false',
+            colorName:name,
+            colorHex:hex,
         }
-        console.log(create_item)
         return create_item;
     }
 
     const placeCard = ({ placeIndex , createdCard })=>{
-        setColorList([...colorList, createdCard].map((item,index)=>{
-            if(item.listIndex >= placeIndex && item.isNew !== true){
-                item.listIndex = item.listIndex + 1;
-            }
-
-            return item 
-        }).sort((a,b)=>{
-            return a.listIndex - b.listIndex;
-        }) , ()=>{
-            console.log(colorList)
-
-        })
+        //Places created card in component
+  
     }
 
-    return [...colorList].map((slide,index)=>{
+    return [...use_results].map((slide,index)=>{
         return  <ColorSlide 
         currentIndex={ index }
-        totalSlides={ items.length }
+        totalSlides={ colorMutable.length }
         showAdd={ slide.showAddIcon } 
         colorHex={ slide.colorHex }
         newSlideRequest={ addNewPaletteCard }
@@ -262,19 +124,242 @@ function ColorDisplayList(data){
     })
 }
 
+
 /* Mutation Handlers  */
 
-class Palette extends Component { 
+class Palette extends Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            loading:true,
+            paletteFilter:5, //Number of columns to show on instance
+            fetchResults:[], // All Fetch results - > Formatted for undo functionality 
+            currentDisplay:{
+                paletteViewPos:0,
+                id:"",
+                colors:[], //Array or color hex to show on instance
+                tags:[], //Identifiers
+            },
+            uiCols:5,
+            uiState:'desktop' // 'desktop' or 'mobile'
+        }
+        this.fetchPaletteResults = this.fetchPaletteResults.bind(this);
+        this.formatFetchedResults = this.formatFetchedResults.bind(this);
+        this.setPaletteDisplay = this.setPaletteDisplay.bind(this);
+    }
+
+    async fetchPaletteResults({size_limit}){
+        //Max allowed --> Hard coding from API
+        if(size_limit > 7){
+            return {
+                ok:false,
+            }
+        }
+        let dt = await axios.get("https://www.colr.org/json/schemes/random/7", {
+            params:{
+                scheme_size_limit:`=>${size_limit}`,
+            }
+        }).then(response=>{
+            const { schemes } = response.data;
+            return {
+                ok:true,
+                schemes,
+            }
+        }).catch((err)=>{
+            return {
+                ok:false,
+            }
+        });
+         return dt
+    }
+
+    formatFetchedResults(unformatted){
+        //Only displays schemes that meet minimum requirement
+        let use_results = [...unformatted].filter((item,index)=>{
+            if(item.colors.length >= this.state.paletteFilter){
+                return item;
+            }
+        })
+        
+        return use_results;
+    }
+
+    setFetchResults({ freshCall , results, callback}){
+        let formatted_results = this.formatFetchedResults(results);
+        //Sets fetch results after formatting 
+        try{
+            let useIndex = this.state.currentDisplay.paletteViewPos;
+            let use_display = {};
+            if(freshCall === true ){
+                useIndex = 0;
+                use_display = formatted_results[useIndex]
+                this.setState({
+                    fetchResults:formatted_results,
+                },()=>{
+                    this.setPaletteDisplay({
+                        id:use_display.id,
+                        colors:use_display.colors,
+                        tags:use_display.tags,
+                        currentPos:useIndex,
+                    });
+                });
+            }else{
+                let current_results = this.state.fetchResults;
+                //Add results to current and use length of previous results to set start point 
+                let new_results = [...current_results, ...formatted_results];
+                useIndex = current_results.length; //Start from end 
+                use_display = new_results[useIndex]
+                this.setState({
+                    fetchResults:new_results,
+                },()=>{
+                    this.setPaletteDisplay({
+                        id:use_display.id,
+                        colors:use_display.colors,
+                        tags:use_display.tags,
+                        currentPos:useIndex, //Use length to ensure at first of new results
+                    });
+                });
+            }
+            callback(true)
+        }catch(err){
+            callback(false);
+            return 
+        }
+   
+    }
+
+    setPaletteDisplay({ id , colors , tags, currentPos}){
+        //Sets palette display to UI
+        this.setState({currentDisplay:{
+            paletteViewPos:currentPos,
+            id,
+            colors,
+            tags,
+        }}, ()=>{
+            'new palette set'
+        })
+    }
+
+
+    async paletteKeyboardController({keyCode, key, code}){
+        let loaderCntrl = (value)=>{
+            this.setState({loading:value});
+            return value;
+        }
+        //Detect spacebar
+        if(key ===  " " || code === "Space" || keyCode === 32){
+            await this.keyboardEventHandle({
+                pendingHandle:()=>{ loaderCntrl(true)},
+                callbackSuccess:(data)=>{
+                    loaderCntrl(false)
+                },
+                callbackError:()=>{
+                    loaderCntrl(false)
+                }
+            })
+        }
+    }
+
+    //Keyboard event handlers
+    async keyboardEventHandle({pendingHandle, callbackSuccess, callbackError }){
+        pendingHandle();
+        let currentPos = this.state.currentDisplay.paletteViewPos;
+        let results = this.state.fetchResults;
+        setTimeout(()=>{
+            let newPos = currentPos + 1;
+            if(newPos < results.length){
+                let useData = results[newPos]
+                this.setPaletteDisplay({
+                    id:useData.id,
+                    colors:useData.colors,
+                    tags:useData.tags,
+                    currentPos:newPos,
+                })
+                callbackSuccess()
+            }else{
+                const requestFunction = async ( okAction , errorAction )=>{
+                    const { schemes , ok } = await this.fetchPaletteResults({size_limit:this.state.paletteFilter});
+                    if(ok === true ){
+                        okAction(schemes)
+                    }else{
+                        errorAction();
+                    }
+                }
+                requestFunction( 
+                    (schemeArray)=>{
+                        this.setFetchResults({
+                            freshCall:false,
+                            results:schemeArray,
+                            callback:callbackSuccess,
+                        })
+                    },
+                    callbackError
+                );
+            }
+        },400)
+    }
+
+    windowStateListener(){
+        if(window.innerWidth <= 992){
+            this.setState({uiCols:1,uiState:'mobile'})
+        }else{
+            this.setState({uiCols:this.state.paletteFilter, uiState:'desktop'})
+        }
+        
+        window.addEventListener('keydown', (e)=>{
+            const { key , code , keyCode } = e;
+            this.paletteKeyboardController({
+                keyCode,
+                key,
+                code,
+            })
+        });
+        window.addEventListener('resize',(e)=>{
+            if(window.innerWidth <= 992){
+                this.setState({uiCols:1,uiState:'mobile'})
+            }else{
+                this.setState({uiCols:this.state.paletteFilter, uiState:'desktop'})
+            }
+        })
+
+        
+    }
+
+    async componentDidMount(){
+        const { ok , schemes } = await this.fetchPaletteResults({size_limit:this.state.paletteFilter});
+        if(ok === true){
+            this.setFetchResults({
+                freshCall:true,
+                results:schemes,
+                callback:(ok)=>{
+                    if(ok === true){
+                        this.setState({loading:false})
+                    }else{
+                        // Error handle here 
+                    }
+                }
+            })
+            this.windowStateListener()
+        }else{
+
+        }         
+    }
+
    render() {  
       return (
-        <div className='full-width app-bg-white app-palette-wrapper'>
+        <div className='full-width app-bg-white app-palette-wrapper main-app-mobile-reverse'>
             <div className='full-width app-palette-header app-stndrd-padding'>
                 <div className='app-palette-instruction'>
                     Press Spacebar to generate new palette.
                 </div>
+                <PaletteLoaderControl
+                    isFetching={ this.state.loading }
+                />
             </div>
             <PaletteController
                 initialCount={ 5 }
+                columnControl = { this.state.uiCols }
+                displayResults = { this.state.currentDisplay.colors }
             />
         </div>
       )
