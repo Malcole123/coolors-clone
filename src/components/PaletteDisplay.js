@@ -1,7 +1,12 @@
 import React , { Component, useState } from 'react';
 import axios from 'axios';
 import ColorSlide from './ColorSlide';
-import { LinearProgress } from '@mui/material';
+import { LinearProgress, Button , Chip, Stack} from '@mui/material';
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
+
+
+import ColorContrastChecker from 'color-contrast-checker'
 
 function PaletteController ({initialCount , displayResults, columnControl }) {
     const [count, setCount] = useState(initialCount);
@@ -48,8 +53,115 @@ function PaletteController ({initialCount , displayResults, columnControl }) {
     );
 }
 
+const constrastTester = new ColorContrastChecker();
 
-function PaletteLoaderControl({ isFetching , override}){
+function returnHigherContrast(color1,color2, bgColor){
+    let colorOneRGB = constrastTester.getRGBFromHex(color1.replaceAll("#",""));
+    let colorTwoRGB = constrastTester.getRGBFromHex(color2.replaceAll("#",""));
+    let bgColorRGB = constrastTester.getRGBFromHex(bgColor.replaceAll("#",""));
+
+    let colorOneLRGB = constrastTester.calculateLRGB(colorOneRGB);
+    let colorTwoLRGB = constrastTester.calculateLRGB(colorTwoRGB);
+    let bgColorLRGB = constrastTester.calculateLRGB(bgColorRGB);
+
+    let colorOneLuminance = constrastTester.calculateLuminance(colorOneLRGB);
+    let colorTwoLuminance = constrastTester.calculateLuminance(colorTwoLRGB);
+    let bgColorLuminance = constrastTester.calculateLuminance(bgColorLRGB);
+
+    let colorOneRatio = constrastTester.getContrastRatio(colorOneLuminance , bgColorLuminance);
+    let colorTwoRatio = constrastTester.getContrastRatio(colorTwoLuminance, bgColorLuminance );
+    if(bgColorLuminance <= 0.25){
+        if(colorOneRatio - 3.75 >= colorTwoRatio){
+            return color1; 
+        }else{
+            return color2;
+        }
+    }else{
+        if(colorOneRatio >= colorTwoRatio){
+            return color1;
+        }else{
+            return color2;
+        }
+    }
+}
+
+function contrastChecker(bgColor){
+    let lightColor = "#ffffff";
+    let darkColor = "#000000";
+    let useColor = returnHigherContrast(lightColor, darkColor, bgColor);
+    return useColor
+}
+
+
+function PaletteActionControls({totalSlides,currentSlide}){
+
+    const paletteUndoAction = ()=>{
+        let target = currentSlide - 1 ;
+       return target;
+    }
+
+    const paletteNextAction = ()=>{
+        let target = currentSlide + 1 ;
+        return target
+    }
+
+    const paletteRemoveControlAction = ()=>{
+        //Removes control from UI
+    }
+
+    const PaletteUndoControls = (current, total )=>{
+        let chips = ['previous', 'next'];
+        let chip_map = chips.map((undoAction, index)=>{
+            let use_dt = {}
+            if(undoAction=== 'previous'){
+                use_dt =  {
+                    label:undoAction,
+                    useIcon:()=>{
+                        return <UndoIcon />
+                    },
+                    useFunction:paletteUndoAction,
+                    removeFunction:paletteRemoveControlAction,
+                }
+            }else{
+                use_dt = {
+                    label:undoAction,
+                    useIcon:()=>{
+                        return <RedoIcon />
+                    },
+                    useFunction:paletteNextAction,
+                    removeFunction:paletteRemoveControlAction,
+                }
+            }
+        
+            return (
+                <Chip
+                    key = { `apppal-ete-key-${index}`}
+                    color="primary"
+                    label={ use_dt.label }
+                    clickable = { true }
+                    onClick={ use_dt.useFunction }
+                    onDelete={ use_dt.removeFunction }
+                    deleteIcon={ use_dt.useIcon()}
+                />
+            )     
+        })
+        return chip_map;
+    }
+
+    return (
+    <div className='app-palette-controls'>
+        <Stack direction="row" spacing={ 1 }>
+            <PaletteUndoControls
+                current = { currentSlide }
+                total = { totalSlides }
+            />
+        </Stack>
+    </div>
+    )
+}
+
+
+function PaletteLoaderControl({ isFetching , override, btnFunction, totalSlides, currentSlide}){
     if(isFetching === true || override === true){
         return (
             <div className='app-palette-loader'>
@@ -58,9 +170,25 @@ function PaletteLoaderControl({ isFetching , override}){
         )
     }else{
         return (
-            <div className='app-palette-loader'>
-            
-            </div> 
+            <span className='app-palette-controller-wrapper'>
+                <PaletteActionControls
+                totalSlides = { totalSlides  }
+                currentSlide = { currentSlide }
+                paletteNextAction = { (data)=>{
+                    // console.log(data)
+                }}
+                paletteUndoAction = { (ev)=>{
+                   // console.log(ev)
+                }}
+                />
+                <Button
+                    variant="contained"
+                    color="success"
+                    onClick = { btnFunction }
+                >
+                    Generate New 
+                </Button>
+            </span>
         )
     }
 }
@@ -71,13 +199,15 @@ function ColorDisplayList(data){
     let colorMutable = [...colorResults].splice(0 , maxShow);
     //Format results for component use
     let use_results = [...colorMutable].map((item,index)=>{
-        let show_icon = index < maxShow - 1 ? 'true' : 'false';
+        //let show_icon = index < maxShow - 1 ? 'true' : 'false';
+        let recommendedContrast = contrastChecker(item)
         return {
             isNew:true,
             listIndex:index,
             showAddIcon:'false', // Change to show icon when new palette feature added 
             colorName:"",
             colorHex:`#${item}`,
+            colorContrast:recommendedContrast,
         };
     })
     //Set results to store for mutation across components 
@@ -115,10 +245,12 @@ function ColorDisplayList(data){
 
     return [...use_results].map((slide,index)=>{
         return  <ColorSlide 
+        key= {`color-palette-slide-${index}`}
         currentIndex={ index }
         totalSlides={ colorMutable.length }
         showAdd={ slide.showAddIcon } 
         colorHex={ slide.colorHex }
+        colorContrast={ slide.colorContrast }
         newSlideRequest={ addNewPaletteCard }
         />
     })
@@ -146,6 +278,8 @@ class Palette extends Component {
         this.fetchPaletteResults = this.fetchPaletteResults.bind(this);
         this.formatFetchedResults = this.formatFetchedResults.bind(this);
         this.setPaletteDisplay = this.setPaletteDisplay.bind(this);
+        this.generateNewPallete = this.generateNewPallete.bind(this);
+        this.btnPaletteGenerate = this.btnPaletteGenerate.bind(this);
     }
 
     async fetchPaletteResults({size_limit}){
@@ -202,6 +336,7 @@ class Palette extends Component {
                         tags:use_display.tags,
                         currentPos:useIndex,
                     });
+                    callback(true)
                 });
             }else{
                 let current_results = this.state.fetchResults;
@@ -218,9 +353,9 @@ class Palette extends Component {
                         tags:use_display.tags,
                         currentPos:useIndex, //Use length to ensure at first of new results
                     });
+                    callback(true)
                 });
             }
-            callback(true)
         }catch(err){
             callback(false);
             return 
@@ -242,31 +377,38 @@ class Palette extends Component {
 
 
     async paletteKeyboardController({keyCode, key, code}){
-        let loaderCntrl = (value)=>{
-            this.setState({loading:value});
-            return value;
-        }
         //Detect spacebar
         if(key ===  " " || code === "Space" || keyCode === 32){
-            await this.keyboardEventHandle({
-                pendingHandle:()=>{ loaderCntrl(true)},
-                callbackSuccess:(data)=>{
-                    loaderCntrl(false)
-                },
-                callbackError:()=>{
-                    loaderCntrl(false)
-                }
-            })
+            await this.keyboardEventHandle('space');
+
         }
     }
 
     //Keyboard event handlers
-    async keyboardEventHandle({pendingHandle, callbackSuccess, callbackError }){
-        pendingHandle();
+    async keyboardEventHandle(handle_type){
+        let useHandle = handle_type || "";
+        switch(useHandle.toLowerCase()){
+            case "space":
+                this.setState({loading:true})
+                this.generateNewPallete({
+                    successCallback:()=>{
+                        this.setState({loading:false})
+                    },
+                    errorCallback:()=>{
+                        this.setState({loading:false})
+                    },
+                    timeout:800,
+                })
+                break
+        }
+  
+    }
+
+    generateNewPallete({successCallback, errorCallback, timeout}){
         let currentPos = this.state.currentDisplay.paletteViewPos;
         let results = this.state.fetchResults;
+        let newPos = currentPos + 1;
         setTimeout(()=>{
-            let newPos = currentPos + 1;
             if(newPos < results.length){
                 let useData = results[newPos]
                 this.setPaletteDisplay({
@@ -275,7 +417,7 @@ class Palette extends Component {
                     tags:useData.tags,
                     currentPos:newPos,
                 })
-                callbackSuccess()
+                successCallback()
             }else{
                 const requestFunction = async ( okAction , errorAction )=>{
                     const { schemes , ok } = await this.fetchPaletteResults({size_limit:this.state.paletteFilter});
@@ -290,13 +432,42 @@ class Palette extends Component {
                         this.setFetchResults({
                             freshCall:false,
                             results:schemeArray,
-                            callback:callbackSuccess,
+                            callback:()=>{
+                                successCallback();
+                            },
                         })
                     },
-                    callbackError
+                    ()=>{
+                        errorCallback();
+                    },
                 );
             }
-        },400)
+        },timeout)
+
+        //Controls pallete 
+    }
+
+    btnPaletteGenerate(){
+        this.setState({loading:true});
+        const resolveAction = (type)=>{
+            setTimeout(()=>{
+                if(type === 'success'){
+                    
+                }else{
+                    ///Add additional error handling later 
+                }
+                this.setState({loading:false});
+            },900)
+        }
+        this.generateNewPallete({
+            successCallback:()=>{
+                resolveAction('success')
+            },
+            errorCallback:()=>{
+                resolveAction('error')
+            },
+            timeout:800,
+        })
     }
 
     windowStateListener(){
@@ -354,10 +525,14 @@ class Palette extends Component {
                 </div>
                 <PaletteLoaderControl
                     isFetching={ this.state.loading }
+                    btnFunction = { this.btnPaletteGenerate }
+                    totalSlides = { this.state.fetchResults.length }
+                    currentSlide = { this.state.currentDisplay.paletteViewPos + 1}
+
                 />
             </div>
             <PaletteController
-                initialCount={ 5 }
+                initialCount={ this.state.paletteFilter }
                 columnControl = { this.state.uiCols }
                 displayResults = { this.state.currentDisplay.colors }
             />

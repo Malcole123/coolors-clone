@@ -2,7 +2,7 @@
   --app-prim-light:#fff;
   --app-prim-black:#000;
   --app-prim-accent:#FFC857;
-  --app-prim-blue:#2E4052;
+  --app-prim-blue:#95ADB6;
   --app-prim-bg:#BDD9BF;
 }
 
@@ -14,7 +14,7 @@
 
 
 html{
-  overflow-x:hidden;
+  overflow:hidden;
 }
 
 
@@ -92,11 +92,13 @@ html{
 .app-palette-header{
   width:100%;
   height:60px;
-  background:var(--app-prim-light);
+  background:#191716;
   display:flex;
   align-items:center;
   justify-content:space-between;
   position:relative;
+  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;
+
 }
 
 .app-palette-loader{
@@ -122,12 +124,45 @@ html{
   background:var(--app-prim-light);
   position:relative;
   cursor:pointer;
+  transition:0.2s ease-in-out;
 }
 
+
+.app-color-display:hover{
+  box-shadow: rgba(0, 0, 0, 0.35) 0px -50px 36px -28px inset;}
 
 .app-color-action-wrapper{
   position:absolute;
 }
+
+.app-color-action-details{
+  width:80%;
+  height:90%;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:0.4em;
+}
+
+.app-color-action-notification{
+  width:100%;
+  top:0%;
+  left:0%;
+  right:0%;
+}
+
+
+.app-color-actions-additional{
+    width:5em;
+    height:40vh;
+    border-radius:4%;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
 
 
 .app-color-add-indicator{
@@ -148,8 +183,36 @@ html{
 
 .app-palette-instruction{
   font-size:18px;
-  color:var(--app-prim-blue)
+  color:var(--app-prim-light);
+  font-weight:600;
 }
+
+.app-color-action-label{
+  width:100%;
+  display:flex;
+  align-items:center;
+  flex-direction:column;
+  gap:1em;
+  background-color:inherit;
+  color:inherit;
+}
+
+.app-color-hex-code{
+  font-size:2.4em;
+  font-weight:700;
+  text-transform:uppercase;
+  padding:0.4em 0.6em;
+  border-radius:4%;
+}
+
+.app-palette-controller-wrapper, .app-palette-controls{
+  height:100%;
+  display:flex;
+  align-items:center;
+  gap:1em;
+}
+
+
 
 @media (max-width:992px) {
   .main-app-mobile-reverse{
@@ -167,13 +230,45 @@ html{
   .app-color-display{
     border-left:none;
     border-right:none;  
+    box-shadow:none;
+  }
+
+  .app-color-display:hover{
+    box-shadow:none;
+  }
+
+  .app-color-hex-code{
+    font-size:1.4em;
   }
 
   
   .app-palette-instruction{
     font-size:14px;
-    color:var(--app-prim-blue)
   }
+
+  .app-color-action-details{
+    width:90%;
+    height:95%;
+    flex-direction:row;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .app-color-action-label{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    flex-direction:row;
+    justify-content:space-between;
+    gap:0.3em;
+    background-color:inherit;
+  }
+  
+  .app-color-actions-additional{
+    width:10%;
+    height:95%;
+    border-radius:4%;
+}
 
   .app-color-add-indicator-right{
     top:100%;

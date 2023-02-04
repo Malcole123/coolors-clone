@@ -9,7 +9,7 @@ class AppNavbar extends Component {
         <nav className='app-navbar app-stndrd-padding'>
             <div className='app-navbar-inner'>
                 <div className='app-logo'>
-                    ColorPal
+
                 </div>
                 <Button variant='contained'>Sign Up</Button>
             </div>
