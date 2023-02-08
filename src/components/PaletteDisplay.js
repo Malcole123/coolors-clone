@@ -6,7 +6,8 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 
 
-import ColorContrastChecker from 'color-contrast-checker'
+import ColorContrastChecker from 'color-contrast-checker';
+
 
 function PaletteController ({initialCount , displayResults, columnControl }) {
     const [count, setCount] = useState(initialCount);
@@ -151,10 +152,7 @@ function PaletteActionControls({totalSlides,currentSlide}){
     return (
     <div className='app-palette-controls'>
         <Stack direction="row" spacing={ 1 }>
-            <PaletteUndoControls
-                current = { currentSlide }
-                total = { totalSlides }
-            />
+       
         </Stack>
     </div>
     )
@@ -175,10 +173,10 @@ function PaletteLoaderControl({ isFetching , override, btnFunction, totalSlides,
                 totalSlides = { totalSlides  }
                 currentSlide = { currentSlide }
                 paletteNextAction = { (data)=>{
-                    // console.log(data)
+                    console.log(data)
                 }}
-                paletteUndoAction = { (ev)=>{
-                   // console.log(ev)
+                paletteUndoAction = { (data)=>{
+                   console.log(data)
                 }}
                 />
                 <Button
@@ -310,9 +308,7 @@ class Palette extends Component {
     formatFetchedResults(unformatted){
         //Only displays schemes that meet minimum requirement
         let use_results = [...unformatted].filter((item,index)=>{
-            if(item.colors.length >= this.state.paletteFilter){
-                return item;
-            }
+            return item.colors.length >= this.state.paletteFilter
         })
         
         return use_results;
@@ -325,6 +321,7 @@ class Palette extends Component {
             let useIndex = this.state.currentDisplay.paletteViewPos;
             let use_display = {};
             if(freshCall === true ){
+                console.log('fresh call set')
                 useIndex = 0;
                 use_display = formatted_results[useIndex]
                 this.setState({
@@ -347,6 +344,7 @@ class Palette extends Component {
                 this.setState({
                     fetchResults:new_results,
                 },()=>{
+                    console.log('non fresh call set', this.state.fetchResults)
                     this.setPaletteDisplay({
                         id:use_display.id,
                         colors:use_display.colors,
@@ -370,8 +368,8 @@ class Palette extends Component {
             id,
             colors,
             tags,
-        }}, ()=>{
-            'new palette set'
+        }}, (state)=>{
+            console.log('new palette set', state)
         })
     }
 
@@ -408,6 +406,8 @@ class Palette extends Component {
         let currentPos = this.state.currentDisplay.paletteViewPos;
         let results = this.state.fetchResults;
         let newPos = currentPos + 1;
+        console.log({ currentPos, newPos});
+        
         setTimeout(()=>{
             if(newPos < results.length){
                 let useData = results[newPos]
@@ -416,12 +416,13 @@ class Palette extends Component {
                     colors:useData.colors,
                     tags:useData.tags,
                     currentPos:newPos,
-                })
+                });
                 successCallback()
             }else{
                 const requestFunction = async ( okAction , errorAction )=>{
                     const { schemes , ok } = await this.fetchPaletteResults({size_limit:this.state.paletteFilter});
                     if(ok === true ){
+                        console.log(schemes, 'fetched schemes')
                         okAction(schemes)
                     }else{
                         errorAction();

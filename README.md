@@ -8,6 +8,8 @@ Application Skeleton Created - 2/2/2023 (mm/dd/yyyy)
 Color palette functionality created. Inititated on load and spacebar press  2/3/2023 (mm/dd/yy)
 
 
+02/3/2023
+Changed npm version from 16.10.0 to 16.1.0 to meet require. for font COlor contrast checker
 
 ## Available Scripts
 
