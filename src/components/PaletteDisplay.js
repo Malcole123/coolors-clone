@@ -314,14 +314,13 @@ class Palette extends Component {
         return use_results;
     }
 
-    setFetchResults({ freshCall , results, callback}){
+    async setFetchResults({ freshCall , results, callback}){
         let formatted_results = this.formatFetchedResults(results);
         //Sets fetch results after formatting 
         try{
             let useIndex = this.state.currentDisplay.paletteViewPos;
             let use_display = {};
             if(freshCall === true ){
-                console.log('fresh call set')
                 useIndex = 0;
                 use_display = formatted_results[useIndex]
                 this.setState({
@@ -336,6 +335,8 @@ class Palette extends Component {
                     callback(true)
                 });
             }else{
+                await this.fetchPaletteResults({size_limit:7})
+                // Causing loop 
                 let current_results = this.state.fetchResults;
                 //Add results to current and use length of previous results to set start point 
                 let new_results = [...current_results, ...formatted_results];
@@ -344,7 +345,6 @@ class Palette extends Component {
                 this.setState({
                     fetchResults:new_results,
                 },()=>{
-                    console.log('non fresh call set', this.state.fetchResults)
                     this.setPaletteDisplay({
                         id:use_display.id,
                         colors:use_display.colors,
@@ -369,7 +369,7 @@ class Palette extends Component {
             colors,
             tags,
         }}, (state)=>{
-            console.log('new palette set', state)
+            console.log('new palette set' , colors, currentPos)
         })
     }
 
@@ -422,7 +422,6 @@ class Palette extends Component {
                 const requestFunction = async ( okAction , errorAction )=>{
                     const { schemes , ok } = await this.fetchPaletteResults({size_limit:this.state.paletteFilter});
                     if(ok === true ){
-                        console.log(schemes, 'fetched schemes')
                         okAction(schemes)
                     }else{
                         errorAction();
@@ -450,6 +449,7 @@ class Palette extends Component {
 
     btnPaletteGenerate(){
         this.setState({loading:true});
+        //Generates new palette
         const resolveAction = (type)=>{
             setTimeout(()=>{
                 if(type === 'success'){
